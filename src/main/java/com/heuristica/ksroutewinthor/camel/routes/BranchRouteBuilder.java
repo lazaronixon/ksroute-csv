@@ -1,6 +1,7 @@
 package com.heuristica.ksroutewinthor.camel.routes;
 
 import com.heuristica.ksroutewinthor.apis.BranchApi;
+import com.heuristica.ksroutewinthor.models.order.Branch;
 import java.util.List;
 import org.apache.camel.component.jackson.ListJacksonDataFormat;
 import org.apache.camel.model.dataformat.JsonLibrary;
@@ -18,35 +19,36 @@ class BranchRouteBuilder extends ApplicationRouteBuilder {
             local.setId(remoteList.isEmpty() ? local.getId() : remoteList.get(0).getId());
             return local;
         }
-    }
+    }    
 
     @Override
     public void configure() {
         super.configure();
 
         from("direct:process-branch").routeId("process-branch")
-                .log("Processando filial ${body.erpId}")            
+                .log("Processando filial ${body.erpId}")                
                 .convertBodyTo(BranchApi.class)
                 .enrich("direct:find-branch", AggregationStrategies.bean(BranchIdAppender.class))                
                 .choice().when(simple("${body.id} == null")).to("direct:create-branch")
                 .otherwise().to("direct:update-branch");
 
         from("direct:find-branch").routeId("find-branch")
-                .setHeader("CamelHttpMethod", constant("GET")).setBody(constant(""))                
-                .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
+                .setHeader("CamelHttpMethod", constant("GET"))                               
                 .setHeader("Content-Type", constant("application/json"))
-                .throttle(5).to("https4://{{ksroute.api.url}}/branches.json")
+                .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
+                .throttle(5).setBody(constant("")).to("https4://{{ksroute.api.url}}/branches.json")
                 .unmarshal(jsonListDataformat);
 
         from("direct:create-branch").routeId("create-branch")
                 .setHeader("CamelHttpMethod", constant("POST"))
                 .marshal().json(JsonLibrary.Jackson)
-                .throttle(5).to("https4://{{ksroute.api.url}}/branches.json");
+                .throttle(5).to("https4://{{ksroute.api.url}}/branches.json")
+                .unmarshal().json(JsonLibrary.Jackson, Branch.class);
 
-        from("direct:update-branch").routeId("update-filial")
-                .setHeader("CamelHttpMethod", constant("PUT"))     
+        from("direct:update-branch").routeId("update-branch")
+                .setHeader("CamelHttpMethod", constant("PUT"))               
                 .setHeader("branchId", simple("body.id"))
                 .marshal().json(JsonLibrary.Jackson)
-                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/branches/${header.branchId}.json"));
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/branches/${header.branchId}.json"));                
     }
 }
