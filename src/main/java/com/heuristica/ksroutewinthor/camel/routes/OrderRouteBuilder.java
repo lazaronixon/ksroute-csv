@@ -1,11 +1,21 @@
 package com.heuristica.ksroutewinthor.camel.routes;
 
 import com.heuristica.ksroutewinthor.LocalizedBindyDataFormat;
+import com.heuristica.ksroutewinthor.models.order.Branch;
 import com.heuristica.ksroutewinthor.models.order.Order;
+import org.apache.camel.util.toolbox.AggregationStrategies;
 import org.springframework.stereotype.Component;
 
 @Component
 class OrderRouteBuilder extends ApplicationRouteBuilder {
+
+    public class OrderEnricher {
+
+        public Order setBranch(Order order, Branch branch) {
+            order.setBranch(branch);
+            return order;
+        }
+    }
 
     @Override
     public void configure() {
@@ -20,7 +30,7 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:process-order").routeId("process-order")
                 .log(">>>> Inicio pedido ${body.erpId}")
-                .split(simple("${body.branch}")).to("direct:process-branch").end()
-                .to("log:?showAll=true&multiline=true");
+                .enrich("direct:process-branch", AggregationStrategies.bean(OrderEnricher.class, "setBranch"))
+                .log("${body}");
     }
 }
