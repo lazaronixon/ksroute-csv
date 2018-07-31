@@ -11,19 +11,11 @@ import org.springframework.stereotype.Component;
 @Component
 class BranchRouteBuilder extends ApplicationRouteBuilder {
 
-    private final ListJacksonDataFormat jsonListDataformat = new ListJacksonDataFormat(BranchApi.class);
-
-    public class BranchEnricher {
-
-        public BranchApi setId(BranchApi local, List<BranchApi> remoteList) {
-            local.setId(remoteList.isEmpty() ? local.getId() : remoteList.get(0).getId());
-            return local;
-        }
-    }    
-
     @Override
     public void configure() {
         super.configure();
+        
+        ListJacksonDataFormat jsonListDataformat = new ListJacksonDataFormat(BranchApi.class);  
 
         from("direct:process-branch").routeId("process-branch")
                 .log("Processando filial ${body.branch.erpId}")
@@ -51,4 +43,14 @@ class BranchRouteBuilder extends ApplicationRouteBuilder {
                 .marshal().json(JsonLibrary.Jackson)
                 .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/branches/${header.branchId}.json"));                
     }
+    
+    
+    public class BranchEnricher {
+
+        public BranchApi setId(BranchApi local, List<BranchApi> remoteList) {
+            local.setId(remoteList.isEmpty() ? local.getId() : remoteList.get(0).getId());
+            return local;
+        }
+    }    
+    
 }

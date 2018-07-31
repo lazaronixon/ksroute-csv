@@ -8,7 +8,9 @@ public class SubregionMapping extends BeanMappingBuilder {
 
     @Override
     protected void configure() {
-        mapping(Subregion.class, SubregionApi.class);
+        mapping(Subregion.class, SubregionApi.class)
+                .fields("region.id", "regionId")
+                .fields("line.id", "lineId");
     }
 
 }
