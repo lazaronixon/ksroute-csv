@@ -26,9 +26,8 @@ class BranchRouteBuilder extends ApplicationRouteBuilder {
         super.configure();
 
         from("direct:process-branch").routeId("process-branch")
-                .log("Processando filial ${body.erpId}")
-                .transform(simple("body.branch"))
-                .convertBodyTo(BranchApi.class)
+                .log("Processando filial ${body.branch.erpId}")
+                .transform(simple("body.branch")).convertBodyTo(BranchApi.class)
                 .enrich("direct:find-branch", AggregationStrategies.bean(BranchEnricher.class))                
                 .choice().when(simple("${body.id} == null")).to("direct:create-branch")
                 .otherwise().to("direct:update-branch")

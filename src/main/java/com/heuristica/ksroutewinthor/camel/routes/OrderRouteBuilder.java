@@ -26,11 +26,12 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
                 .setHeader("X-User-Email", constant("{{ksroute.api.email}}"))
                 .setHeader("X-User-Token", constant("{{ksroute.api.token}}"))
                 .unmarshal(new LocalizedBindyDataFormat(Order.class))
-                .split(body()).to("direct:process-order");
+                .split(body()).to("direct:process-order").end()
+                .log(">>>>>>> Fim arquivo ${file:path}");
 
         from("direct:process-order").routeId("process-order")
                 .log(">>>> Inicio pedido ${body.erpId}")
                 .enrich("direct:process-branch", AggregationStrategies.bean(OrderEnricher.class, "setBranch"))
-                .log("${body}");
+                .log(">>>> Fim pedido ${body.erpId}");
     }
 }
