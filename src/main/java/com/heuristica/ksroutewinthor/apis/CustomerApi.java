@@ -3,7 +3,7 @@ package com.heuristica.ksroutewinthor.apis;
 import lombok.Data;
 
 @Data
-public class Customer {
+public class CustomerApi {
     
     private Long id;
     private String name;
@@ -16,9 +16,7 @@ public class Customer {
     private Float latitude;
     private Float longitude;
     private String erpId;  
-    private Boolean active;   
-    
+    private Boolean active;    
     private Long subregionId;
-    private Subregion subregion;
     
 }
