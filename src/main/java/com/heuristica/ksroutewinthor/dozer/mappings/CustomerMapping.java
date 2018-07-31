@@ -8,7 +8,7 @@ public class CustomerMapping extends BeanMappingBuilder {
 
     @Override
     protected void configure() {
-        mapping(Customer.class, CustomerApi.class);
+        mapping(Customer.class, CustomerApi.class).fields("subregion.id", "subregionId");
     }
 
 }

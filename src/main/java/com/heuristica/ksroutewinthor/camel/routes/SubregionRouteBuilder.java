@@ -22,7 +22,7 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
         from("direct:process-subregion").routeId("process-subregion")
                 .log("Processando subregião ${body.subregion.erpId}")
                 .transform(simple("body.subregion"))
-                .enrich("direct:process-region", AggregationStrategies.bean(SubregionEnricher.class, "setRegion"))
+                .enrich("direct:process-region", AggregationStrategies.bean(SubregionEnricher.class, "setRegion"))                
                 .enrich("direct:process-line", AggregationStrategies.bean(SubregionEnricher.class, "setLine"))
                 .convertBodyTo(SubregionApi.class)
                 .enrich("direct:find-subregion", AggregationStrategies.bean(SubregionEnricher.class, "setId"))                
