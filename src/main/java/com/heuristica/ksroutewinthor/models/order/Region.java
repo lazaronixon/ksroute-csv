@@ -10,16 +10,16 @@ public class Region {
     
     private Long id;
     
-    @DataField(pos = 23, required = true)
+    @DataField(pos = 22, required = true)
     private String description;
     
-    @DataField(pos = 24, required = true)
+    @DataField(pos = 23, required = true)
     private String state;
     
-    @DataField(pos = 25, required = true)
+    @DataField(pos = 24, required = true)
     private String erpId;
     
-    @DataField(pos = 26, defaultValue = "true")
+    @DataField(pos = 25, defaultValue = "true")
     private Boolean active;
 
 }

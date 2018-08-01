@@ -10,13 +10,13 @@ public class Subregion {
     
     private Long id;
     
-    @DataField(pos = 20, required = true)
+    @DataField(pos = 19, required = true)
     private String description;
     
-    @DataField(pos = 21, required = true)
+    @DataField(pos = 20, required = true)
     private String erpId;
     
-    @DataField(pos = 22, defaultValue = "true")
+    @DataField(pos = 21, defaultValue = "true")
     private Boolean active;
     
     @Link   

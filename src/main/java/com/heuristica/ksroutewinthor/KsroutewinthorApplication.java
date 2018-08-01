@@ -11,7 +11,6 @@ import org.apache.camel.converter.dozer.DozerTypeConverterLoader;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import com.heuristica.ksroutewinthor.dozer.mappings.BranchMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.CustomerMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.LineMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.OrderMapping;
@@ -37,7 +36,7 @@ public class KsroutewinthorApplication {
     public DozerBeanMapperConfiguration mapper() {
         DozerBeanMapperConfiguration dozerConfig = new DozerBeanMapperConfiguration();
         dozerConfig.setBeanMappingBuilders(Arrays.asList(
-                new BranchMapping(), new CustomerMapping(), new LineMapping(), new OrderMapping(),
+                new CustomerMapping(), new LineMapping(), new OrderMapping(),
                 new RegionMapping(), new SubregionMapping()
         ));
         return dozerConfig;

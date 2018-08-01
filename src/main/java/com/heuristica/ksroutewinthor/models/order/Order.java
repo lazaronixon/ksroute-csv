@@ -34,8 +34,8 @@ public class Order {
     @DataField(pos = 6, required = true, pattern = "dd/MM/yyyy")
     private Date issuedAt;  
     
-    @Link
-    private Branch branch;    
+    @DataField(pos = 7, required = true)
+    private Long branchId;    
        
     @Link
     private Customer customer;
