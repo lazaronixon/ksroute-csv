@@ -29,18 +29,18 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
         from("direct:find-customer").routeId("find-customer")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/customers.json")
+                .setBody(constant("")).throttle(50).timePeriodMillis(10000).to("https4://{{ksroute.api.url}}/customers.json")
                 .unmarshal(jsonListDataformat);
 
         from("direct:create-customer").routeId("create-customer")
                 .convertBodyTo(CustomerApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).to("https4://{{ksroute.api.url}}/customers.json");
+                .throttle(50).timePeriodMillis(10000).to("https4://{{ksroute.api.url}}/customers.json");
 
         from("direct:update-customer").routeId("update-customer")                
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT"))
                 .convertBodyTo(CustomerApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/customers/${header.id}.json"));
+                .throttle(50).timePeriodMillis(10000).recipientList(simple("https4://{{ksroute.api.url}}/customers/${header.id}.json"));
     }
 
     public class CustomerEnricher {

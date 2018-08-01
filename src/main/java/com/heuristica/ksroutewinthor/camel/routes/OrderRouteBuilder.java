@@ -38,18 +38,18 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
         from("direct:find-order").routeId("find-order")                          
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/orders.json")
+                .setBody(constant("")).throttle(50).timePeriodMillis(10000).to("https4://{{ksroute.api.url}}/orders.json")
                 .unmarshal(jsonListDataformat);
 
         from("direct:create-order").routeId("create-order")
                 .convertBodyTo(OrderApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).to("https4://{{ksroute.api.url}}/orders.json");
+                .throttle(50).timePeriodMillis(10000).to("https4://{{ksroute.api.url}}/orders.json");
 
         from("direct:update-order").routeId("update-order")                              
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(OrderApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/orders/${header.id}.json"));          
+                .throttle(50).timePeriodMillis(10000).recipientList(simple("https4://{{ksroute.api.url}}/orders/${header.id}.json"));          
     }
     
     public class OrderEnricher {
