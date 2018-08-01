@@ -24,8 +24,7 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
                 .otherwise().to("direct:update-line")
                 .unmarshal().json(JsonLibrary.Jackson, Line.class);   
         
-        from("direct:find-line").routeId("find-line")
-                .setHeader("CamelHttpMethod", constant("GET"))                               
+        from("direct:find-line").routeId("find-line")                             
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
                 .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/lines.json")
@@ -38,9 +37,9 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:update-line").routeId("update-line")
                 .setHeader("CamelHttpMethod", constant("PUT"))               
-                .setHeader("lineId", simple("body.id"))
+                .setHeader("id", simple("body.id"))
                 .convertBodyTo(LineApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/lines/${header.lineId}.json"));        
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/lines/${header.id}.json"));        
     }
     
     public class LineEnricher {

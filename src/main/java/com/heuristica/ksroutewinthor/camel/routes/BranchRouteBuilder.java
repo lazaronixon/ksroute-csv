@@ -24,8 +24,7 @@ class BranchRouteBuilder extends ApplicationRouteBuilder {
                 .otherwise().to("direct:update-branch")
                 .unmarshal().json(JsonLibrary.Jackson, Branch.class);
 
-        from("direct:find-branch").routeId("find-branch")
-                .setHeader("CamelHttpMethod", constant("GET"))                               
+        from("direct:find-branch").routeId("find-branch")                         
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
                 .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/branches.json")
@@ -38,9 +37,9 @@ class BranchRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:update-branch").routeId("update-branch")
                 .setHeader("CamelHttpMethod", constant("PUT"))               
-                .setHeader("branchId", simple("body.id"))
+                .setHeader("id", simple("body.id"))
                 .convertBodyTo(BranchApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/branches/${header.branchId}.json"));                
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/branches/${header.id}.json"));                
     }
     
     

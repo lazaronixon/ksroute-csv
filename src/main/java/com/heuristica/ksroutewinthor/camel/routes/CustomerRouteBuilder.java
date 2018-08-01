@@ -27,7 +27,6 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
                 .unmarshal().json(JsonLibrary.Jackson, Customer.class);
 
         from("direct:find-customer").routeId("find-customer")
-                .setHeader("CamelHttpMethod", constant("GET"))
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
                 .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/customers.json")
@@ -40,9 +39,9 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:update-customer").routeId("update-customer")
                 .setHeader("CamelHttpMethod", constant("PUT"))
-                .setHeader("customerId", simple("body.id"))
+                .setHeader("id", simple("body.id"))
                 .convertBodyTo(CustomerApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/customers/${header.customerId}.json"));
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/customers/${header.id}.json"));
     }
 
     public class CustomerEnricher {
