@@ -12,7 +12,8 @@ public class ApplicationRouteBuilder extends RouteBuilder {
         
         onException(HttpOperationFailedException.class)
                 .filter(simple("${exception.statusCode} == 422"))
-                .log(LoggingLevel.WARN, "Erro de validação ${exception.responseBody}");
+                .log(LoggingLevel.WARN, "Erro de validação: ${body}")
+                .log(LoggingLevel.WARN, "Detalhe: ${exception.responseBody}");
     }
 
 }
