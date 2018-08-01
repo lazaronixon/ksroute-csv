@@ -34,9 +34,9 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
                 .convertBodyTo(LineApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4://{{ksroute.api.url}}/lines.json");
 
-        from("direct:update-line").routeId("update-line")
-                .setHeader("CamelHttpMethod", constant("PUT"))               
+        from("direct:update-line").routeId("update-line")                              
                 .setHeader("id", simple("body.id"))
+                .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(LineApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/lines/${header.id}.json"));        
     }

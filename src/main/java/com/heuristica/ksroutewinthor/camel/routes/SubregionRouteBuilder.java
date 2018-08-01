@@ -38,9 +38,9 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
                 .convertBodyTo(SubregionApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4://{{ksroute.api.url}}/subregions.json");
 
-        from("direct:update-subregion").routeId("update-subregion")
-                .setHeader("CamelHttpMethod", constant("PUT"))               
+        from("direct:update-subregion").routeId("update-subregion")                              
                 .setHeader("id", simple("body.id"))
+                .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(SubregionApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/subregions/${header.id}.json"));          
         

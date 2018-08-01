@@ -36,9 +36,9 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
                 .convertBodyTo(CustomerApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4://{{ksroute.api.url}}/customers.json");
 
-        from("direct:update-customer").routeId("update-customer")
-                .setHeader("CamelHttpMethod", constant("PUT"))
+        from("direct:update-customer").routeId("update-customer")                
                 .setHeader("id", simple("body.id"))
+                .setHeader("CamelHttpMethod", constant("PUT"))
                 .convertBodyTo(CustomerApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/customers/${header.id}.json"));
     }

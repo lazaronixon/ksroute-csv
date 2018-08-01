@@ -45,9 +45,9 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
                 .convertBodyTo(OrderApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4://{{ksroute.api.url}}/orders.json");
 
-        from("direct:update-order").routeId("update-order")
-                .setHeader("CamelHttpMethod", constant("PUT"))               
+        from("direct:update-order").routeId("update-order")                              
                 .setHeader("id", simple("body.id"))
+                .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(OrderApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/orders/${header.id}.json"));          
     }
