@@ -23,7 +23,6 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
                 .transform(simple("body.subregion"))
                 .enrich("direct:process-region", AggregationStrategies.bean(SubregionEnricher.class, "setRegion"))                
                 .enrich("direct:process-line", AggregationStrategies.bean(SubregionEnricher.class, "setLine"))
-                .convertBodyTo(SubregionApi.class)
                 .enrich("direct:find-subregion", AggregationStrategies.bean(SubregionEnricher.class, "setId"))                
                 .choice().when(simple("${body.id} == null")).to("direct:create-subregion")
                 .otherwise().to("direct:update-subregion")
@@ -38,20 +37,20 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:create-subregion").routeId("create-subregion")
                 .setHeader("CamelHttpMethod", constant("POST"))
-                .marshal().json(JsonLibrary.Jackson)
+                .convertBodyTo(SubregionApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4://{{ksroute.api.url}}/subregions.json");
 
         from("direct:update-subregion").routeId("update-subregion")
                 .setHeader("CamelHttpMethod", constant("PUT"))               
                 .setHeader("subregionId", simple("body.id"))
-                .marshal().json(JsonLibrary.Jackson)
+                .convertBodyTo(SubregionApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/subregions/${header.subregionId}.json"));          
         
     }
     
     public class SubregionEnricher {
         
-        public SubregionApi setId(SubregionApi local, List<SubregionApi> remoteList) {
+        public Subregion setId(Subregion local, List<SubregionApi> remoteList) {
             local.setId(remoteList.isEmpty() ? local.getId() : remoteList.get(0).getId());
             return local;
         }        

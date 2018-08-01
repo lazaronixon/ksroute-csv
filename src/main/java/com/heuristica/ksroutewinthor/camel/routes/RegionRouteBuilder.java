@@ -18,7 +18,7 @@ class RegionRouteBuilder extends ApplicationRouteBuilder {
         ListJacksonDataFormat jsonListDataformat = new ListJacksonDataFormat(RegionApi.class);        
 
         from("direct:process-region").routeId("process-region")
-                .transform(simple("body.region")).convertBodyTo(RegionApi.class)
+                .transform(simple("body.region"))
                 .enrich("direct:find-region", AggregationStrategies.bean(RegionEnricher.class))                
                 .choice().when(simple("${body.id} == null")).to("direct:create-region")
                 .otherwise().to("direct:update-region")
@@ -33,20 +33,20 @@ class RegionRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:create-region").routeId("create-region")
                 .setHeader("CamelHttpMethod", constant("POST"))
-                .marshal().json(JsonLibrary.Jackson)
+                .convertBodyTo(RegionApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4://{{ksroute.api.url}}/regions.json");
 
         from("direct:update-region").routeId("update-region")
                 .setHeader("CamelHttpMethod", constant("PUT"))               
                 .setHeader("regionId", simple("body.id"))
-                .marshal().json(JsonLibrary.Jackson)
+                .convertBodyTo(RegionApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/regions/${header.regionId}.json"));
         
     }
     
     public class RegionEnricher {
 
-        public RegionApi setId(RegionApi local, List<RegionApi> remoteList) {
+        public Region setId(Region local, List<RegionApi> remoteList) {
             local.setId(remoteList.isEmpty() ? local.getId() : remoteList.get(0).getId());
             return local;
         }

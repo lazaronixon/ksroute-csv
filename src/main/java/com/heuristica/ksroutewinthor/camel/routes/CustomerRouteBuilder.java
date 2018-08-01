@@ -21,7 +21,6 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
         from("direct:process-customer").routeId("process-customer")
                 .transform(simple("body.customer"))
                 .enrich("direct:process-subregion", AggregationStrategies.bean(CustomerEnricher.class, "setSubregion"))                
-                .convertBodyTo(CustomerApi.class)
                 .enrich("direct:find-customer", AggregationStrategies.bean(CustomerEnricher.class, "setIdAndLatLng"))
                 .choice().when(simple("${body.id} == null")).to("direct:create-customer")
                 .otherwise().to("direct:update-customer")
@@ -36,19 +35,19 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:create-customer").routeId("create-customer")
                 .setHeader("CamelHttpMethod", constant("POST"))
-                .marshal().json(JsonLibrary.Jackson)
+                .convertBodyTo(CustomerApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4://{{ksroute.api.url}}/customers.json");
 
         from("direct:update-customer").routeId("update-customer")
                 .setHeader("CamelHttpMethod", constant("PUT"))
                 .setHeader("customerId", simple("body.id"))
-                .marshal().json(JsonLibrary.Jackson)
+                .convertBodyTo(CustomerApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/customers/${header.customerId}.json"));
     }
 
     public class CustomerEnricher {
 
-        public CustomerApi setIdAndLatLng(CustomerApi local, List<CustomerApi> remoteList) {
+        public Customer setIdAndLatLng(Customer local, List<CustomerApi> remoteList) {
             if (remoteList.isEmpty() == false) {
                 local.setId(remoteList.get(0).getId());
                 local.setLatitude(remoteList.get(0).getLatitude());

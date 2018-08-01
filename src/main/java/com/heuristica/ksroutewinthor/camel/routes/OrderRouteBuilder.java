@@ -31,8 +31,7 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
         from("direct:process-order").routeId("process-order")
                 .log("Processando pedido ${body.erpId}")
                 .enrich("direct:process-branch", AggregationStrategies.bean(OrderEnricher.class, "setBranch"))
-                .enrich("direct:process-customer", AggregationStrategies.bean(OrderEnricher.class, "setCustomer"))               
-                .convertBodyTo(OrderApi.class)
+                .enrich("direct:process-customer", AggregationStrategies.bean(OrderEnricher.class, "setCustomer"))
                 .enrich("direct:find-order", AggregationStrategies.bean(OrderEnricher.class, "setId"))                
                 .choice().when(simple("${body.id} == null")).to("direct:create-order")
                 .otherwise().to("direct:update-order")
@@ -47,19 +46,19 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:create-order").routeId("create-order")
                 .setHeader("CamelHttpMethod", constant("POST"))
-                .marshal().json(JsonLibrary.Jackson)
+                .convertBodyTo(OrderApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4://{{ksroute.api.url}}/orders.json");
 
         from("direct:update-order").routeId("update-order")
                 .setHeader("CamelHttpMethod", constant("PUT"))               
                 .setHeader("orderId", simple("body.id"))
-                .marshal().json(JsonLibrary.Jackson)
+                .convertBodyTo(OrderApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/orders/${header.orderId}.json"));          
     }
     
     public class OrderEnricher {
         
-        public OrderApi setId(OrderApi local, List<OrderApi> remoteList) {
+        public Order setId(Order local, List<OrderApi> remoteList) {
             local.setId(remoteList.isEmpty() ? local.getId() : remoteList.get(0).getId());
             return local;
         }        
