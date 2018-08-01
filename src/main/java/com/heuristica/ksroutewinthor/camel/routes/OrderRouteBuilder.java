@@ -24,10 +24,10 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
                 .setHeader("X-User-Email", constant("{{ksroute.api.email}}"))
                 .setHeader("X-User-Token", constant("{{ksroute.api.token}}"))
                 .unmarshal(new LocalizedBindyDataFormat(Order.class))
-                .split(body()).to("direct:process-order").end()
+                .split(body()).parallelProcessing().to("direct:process-order").end()
                 .log(">>>>>>> Fim arquivo ${file:path}");        
 
-        from("direct:process-order").routeId("process-order")
+        from("direct:process-order").routeId("process-order")                
                 .log("Processando pedido ${body.erpId}")
                 .enrich("direct:process-customer", AggregationStrategies.bean(OrderEnricher.class, "setCustomer"))
                 .enrich("direct:find-order", AggregationStrategies.bean(OrderEnricher.class, "setId"))                
