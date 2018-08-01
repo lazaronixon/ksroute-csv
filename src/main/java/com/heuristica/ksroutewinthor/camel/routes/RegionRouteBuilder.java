@@ -28,19 +28,19 @@ class RegionRouteBuilder extends ApplicationRouteBuilder {
                 .setHeader("CamelHttpMethod", constant("GET"))                               
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).throttle(50).timePeriodMillis(10000).to("https4://{{ksroute.api.url}}/regions.json")
+                .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/regions.json")
                 .unmarshal(jsonListDataformat);
 
         from("direct:create-region").routeId("create-region")
                 .setHeader("CamelHttpMethod", constant("POST"))
                 .marshal().json(JsonLibrary.Jackson)
-                .throttle(50).timePeriodMillis(10000).to("https4://{{ksroute.api.url}}/regions.json");
+                .throttle(5).to("https4://{{ksroute.api.url}}/regions.json");
 
         from("direct:update-region").routeId("update-region")
                 .setHeader("CamelHttpMethod", constant("PUT"))               
                 .setHeader("regionId", simple("body.id"))
                 .marshal().json(JsonLibrary.Jackson)
-                .throttle(50).timePeriodMillis(10000).recipientList(simple("https4://{{ksroute.api.url}}/regions/${header.regionId}.json"));
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/regions/${header.regionId}.json"));
         
     }
     

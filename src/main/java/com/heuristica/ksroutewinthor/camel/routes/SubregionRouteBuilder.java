@@ -33,19 +33,19 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
                 .setHeader("CamelHttpMethod", constant("GET"))                               
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).throttle(50).timePeriodMillis(10000).to("https4://{{ksroute.api.url}}/subregions.json")
+                .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/subregions.json")
                 .unmarshal(jsonListDataformat);
 
         from("direct:create-subregion").routeId("create-subregion")
                 .setHeader("CamelHttpMethod", constant("POST"))
                 .marshal().json(JsonLibrary.Jackson)
-                .throttle(50).timePeriodMillis(10000).to("https4://{{ksroute.api.url}}/subregions.json");
+                .throttle(5).to("https4://{{ksroute.api.url}}/subregions.json");
 
         from("direct:update-subregion").routeId("update-subregion")
                 .setHeader("CamelHttpMethod", constant("PUT"))               
                 .setHeader("subregionId", simple("body.id"))
                 .marshal().json(JsonLibrary.Jackson)
-                .throttle(50).timePeriodMillis(10000).recipientList(simple("https4://{{ksroute.api.url}}/subregions/${header.subregionId}.json"));          
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/subregions/${header.subregionId}.json"));          
         
     }
     

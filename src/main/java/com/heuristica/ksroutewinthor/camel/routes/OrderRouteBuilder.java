@@ -42,19 +42,19 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
                 .setHeader("CamelHttpMethod", constant("GET"))                               
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).throttle(50).timePeriodMillis(10000).to("https4://{{ksroute.api.url}}/orders.json")
+                .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/orders.json")
                 .unmarshal(jsonListDataformat);
 
         from("direct:create-order").routeId("create-order")
                 .setHeader("CamelHttpMethod", constant("POST"))
                 .marshal().json(JsonLibrary.Jackson)
-                .throttle(50).timePeriodMillis(10000).to("https4://{{ksroute.api.url}}/orders.json");
+                .throttle(5).to("https4://{{ksroute.api.url}}/orders.json");
 
         from("direct:update-order").routeId("update-order")
                 .setHeader("CamelHttpMethod", constant("PUT"))               
                 .setHeader("orderId", simple("body.id"))
                 .marshal().json(JsonLibrary.Jackson)
-                .throttle(50).timePeriodMillis(10000).recipientList(simple("https4://{{ksroute.api.url}}/orders/${header.orderId}.json"));          
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/orders/${header.orderId}.json"));          
     }
     
     public class OrderEnricher {
