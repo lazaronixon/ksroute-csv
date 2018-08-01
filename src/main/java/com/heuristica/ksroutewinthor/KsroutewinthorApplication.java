@@ -3,6 +3,7 @@ package com.heuristica.ksroutewinthor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.util.Arrays;
 import org.apache.camel.CamelContext;
 import org.apache.camel.converter.dozer.DozerBeanMapperConfiguration;
@@ -27,6 +28,7 @@ public class KsroutewinthorApplication {
     @Bean
     public ObjectMapper defaultJacksonFormat() {
         return new ObjectMapper()
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }

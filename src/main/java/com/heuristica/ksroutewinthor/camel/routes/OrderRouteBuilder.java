@@ -19,23 +19,24 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
         super.configure();
         
         ListJacksonDataFormat jsonListDataformat = new ListJacksonDataFormat(OrderApi.class);        
-
+                
         from("file://files/orders?move=done").routeId("process-order-file")
                 .log(">>>>>>> Inicio arquivo ${file:path}")
                 .setHeader("X-User-Email", constant("{{ksroute.api.email}}"))
                 .setHeader("X-User-Token", constant("{{ksroute.api.token}}"))
                 .unmarshal(new LocalizedBindyDataFormat(Order.class))
                 .split(body()).to("direct:process-order").end()
-                .log(">>>>>>> Fim arquivo ${file:path}");
+                .log(">>>>>>> Fim arquivo ${file:path}");        
 
         from("direct:process-order").routeId("process-order")
                 .log(">>>> Inicio pedido ${body.erpId}")
                 .enrich("direct:process-branch", AggregationStrategies.bean(OrderEnricher.class, "setBranch"))
                 .enrich("direct:process-customer", AggregationStrategies.bean(OrderEnricher.class, "setCustomer"))
                 .convertBodyTo(OrderApi.class)
-                .enrich("direct:find-order", AggregationStrategies.bean(OrderEnricher.class, "setId"))
+                .enrich("direct:find-order", AggregationStrategies.bean(OrderEnricher.class, "setId"))                
                 .choice().when(simple("${body.id} == null")).to("direct:create-order")
-                .otherwise().to("direct:update-order")               
+                .otherwise().to("direct:update-order")
+                .unmarshal().json(JsonLibrary.Jackson, Order.class)
                 .log(">>>> Fim pedido ${body.erpId}");
         
         from("direct:find-order").routeId("find-order")
@@ -54,7 +55,7 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
                 .setHeader("CamelHttpMethod", constant("PUT"))               
                 .setHeader("orderId", simple("body.id"))
                 .marshal().json(JsonLibrary.Jackson)
-                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/lines/${header.orderId}.json"));          
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/orders/${header.orderId}.json"));          
     }
     
     public class OrderEnricher {
