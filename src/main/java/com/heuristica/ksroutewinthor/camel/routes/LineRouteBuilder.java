@@ -31,7 +31,6 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
                 .unmarshal(jsonListDataformat);
 
         from("direct:create-line").routeId("create-line")
-                .setHeader("CamelHttpMethod", constant("POST"))
                 .convertBodyTo(LineApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4://{{ksroute.api.url}}/lines.json");
 

@@ -35,7 +35,6 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
                 .unmarshal(jsonListDataformat);
 
         from("direct:create-subregion").routeId("create-subregion")
-                .setHeader("CamelHttpMethod", constant("POST"))
                 .convertBodyTo(SubregionApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4://{{ksroute.api.url}}/subregions.json");
 

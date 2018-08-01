@@ -31,7 +31,6 @@ class RegionRouteBuilder extends ApplicationRouteBuilder {
                 .unmarshal(jsonListDataformat);
 
         from("direct:create-region").routeId("create-region")
-                .setHeader("CamelHttpMethod", constant("POST"))
                 .convertBodyTo(RegionApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4://{{ksroute.api.url}}/regions.json");
 

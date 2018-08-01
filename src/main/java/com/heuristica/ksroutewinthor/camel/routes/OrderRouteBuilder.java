@@ -42,7 +42,6 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
                 .unmarshal(jsonListDataformat);
 
         from("direct:create-order").routeId("create-order")
-                .setHeader("CamelHttpMethod", constant("POST"))
                 .convertBodyTo(OrderApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4://{{ksroute.api.url}}/orders.json");
 
