@@ -16,6 +16,12 @@ import com.heuristica.ksroutewinthor.dozer.mappings.LineMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.OrderMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.RegionMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.SubregionMapping;
+import java.time.Duration;
+import org.ehcache.CacheManager;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.ExpiryPolicyBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
 
 @SpringBootApplication
 public class KsroutewinthorApplication {
@@ -45,6 +51,16 @@ public class KsroutewinthorApplication {
     @Bean
     public DozerTypeConverterLoader dozerConverterLoader(CamelContext camelContext, DozerBeanMapperConfiguration dozerConfig) {
         return new DozerTypeConverterLoader(camelContext, dozerConfig);
+    }
+
+    @Bean
+    public CacheManager cacheManager() {
+        return CacheManagerBuilder.newCacheManagerBuilder()
+                .withCache("idempotent-cache",
+                        CacheConfigurationBuilder.newCacheConfigurationBuilder(
+                                String.class, Boolean.class, ResourcePoolsBuilder.heap(100))
+                                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofSeconds(60))))
+                .build(true);
     }
 
 }

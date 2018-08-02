@@ -5,7 +5,6 @@ import com.heuristica.ksroutewinthor.models.order.Line;
 import java.util.List;
 import org.apache.camel.component.jackson.ListJacksonDataFormat;
 import org.apache.camel.model.dataformat.JsonLibrary;
-import static org.apache.camel.processor.idempotent.MemoryIdempotentRepository.memoryIdempotentRepository;
 import org.apache.camel.util.toolbox.AggregationStrategies;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +20,8 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
         from("direct:process-line").routeId("process-line")
                 .transform(simple("body.line"))
                 .enrich("direct:find-line", AggregationStrategies.bean(LineEnricher.class))
-                .idempotentConsumer(body(), memoryIdempotentRepository(10))
+                .idempotentConsumer(simple("lines/${body.id}"), getIdempotentCache())
+                .log("sem cacheee")
                 .choice().when(simple("${body.id} == null")).to("direct:create-line")
                 .otherwise().to("direct:update-line")
                 .unmarshal().json(JsonLibrary.Jackson, Line.class);   

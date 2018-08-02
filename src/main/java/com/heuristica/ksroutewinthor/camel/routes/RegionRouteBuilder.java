@@ -5,7 +5,6 @@ import com.heuristica.ksroutewinthor.models.order.Region;
 import java.util.List;
 import org.apache.camel.component.jackson.ListJacksonDataFormat;
 import org.apache.camel.model.dataformat.JsonLibrary;
-import static org.apache.camel.processor.idempotent.MemoryIdempotentRepository.memoryIdempotentRepository;
 import org.apache.camel.util.toolbox.AggregationStrategies;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +20,7 @@ class RegionRouteBuilder extends ApplicationRouteBuilder {
         from("direct:process-region").routeId("process-region")
                 .transform(simple("body.region"))
                 .enrich("direct:find-region", AggregationStrategies.bean(RegionEnricher.class))
-                .idempotentConsumer(body(), memoryIdempotentRepository(10))
+                .idempotentConsumer(simple("regions/${body.id}"), getIdempotentCache())
                 .choice().when(simple("${body.id} == null")).to("direct:create-region")
                 .otherwise().to("direct:update-region")
                 .unmarshal().json(JsonLibrary.Jackson, Region.class);

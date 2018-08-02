@@ -7,8 +7,6 @@ import com.heuristica.ksroutewinthor.models.order.Subregion;
 import java.util.List;
 import org.apache.camel.component.jackson.ListJacksonDataFormat;
 import org.apache.camel.model.dataformat.JsonLibrary;
-import org.apache.camel.processor.idempotent.MemoryIdempotentRepository;
-import static org.apache.camel.processor.idempotent.MemoryIdempotentRepository.memoryIdempotentRepository;
 import org.apache.camel.util.toolbox.AggregationStrategies;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +24,7 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
                 .enrich("direct:process-region", AggregationStrategies.bean(SubregionEnricher.class, "setRegion"))                
                 .enrich("direct:process-line", AggregationStrategies.bean(SubregionEnricher.class, "setLine"))
                 .enrich("direct:find-subregion", AggregationStrategies.bean(SubregionEnricher.class, "setId"))
-                .idempotentConsumer(body(), memoryIdempotentRepository(10))
+                .idempotentConsumer(simple("subregions/${body.id}"), getIdempotentCache())
                 .choice().when(simple("${body.id} == null")).to("direct:create-subregion")
                 .otherwise().to("direct:update-subregion")
                 .unmarshal().json(JsonLibrary.Jackson, Subregion.class);

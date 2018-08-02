@@ -2,12 +2,10 @@ package com.heuristica.ksroutewinthor.camel.routes;
 
 import com.heuristica.ksroutewinthor.apis.CustomerApi;
 import com.heuristica.ksroutewinthor.models.order.Customer;
-import com.heuristica.ksroutewinthor.models.order.Region;
 import com.heuristica.ksroutewinthor.models.order.Subregion;
 import java.util.List;
 import org.apache.camel.component.jackson.ListJacksonDataFormat;
 import org.apache.camel.model.dataformat.JsonLibrary;
-import static org.apache.camel.processor.idempotent.MemoryIdempotentRepository.memoryIdempotentRepository;
 import org.apache.camel.util.toolbox.AggregationStrategies;
 import org.springframework.stereotype.Component;
 
@@ -22,9 +20,9 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:process-customer").routeId("process-customer")
                 .transform(simple("body.customer"))
-                .enrich("direct:process-subregion", AggregationStrategies.bean(CustomerEnricher.class, "setSubregion"))                
+                .enrich("direct:process-subregion", AggregationStrategies.bean(CustomerEnricher.class, "setSubregion"))
                 .enrich("direct:find-customer", AggregationStrategies.bean(CustomerEnricher.class, "setIdAndLatLng"))
-                .idempotentConsumer(body(), memoryIdempotentRepository(50))
+                .idempotentConsumer(simple("customers/${body.id}"), getIdempotentCache())
                 .choice().when(simple("${body.id} == null")).to("direct:create-customer")
                 .otherwise().to("direct:update-customer")
                 .unmarshal().json(JsonLibrary.Jackson, Customer.class);
@@ -39,7 +37,7 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
                 .convertBodyTo(CustomerApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4://{{ksroute.api.url}}/customers.json");
 
-        from("direct:update-customer").routeId("update-customer")                
+        from("direct:update-customer").routeId("update-customer")
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT"))
                 .convertBodyTo(CustomerApi.class).marshal().json(JsonLibrary.Jackson)
