@@ -1,6 +1,7 @@
 package com.heuristica.ksroutewinthor.camel.routes;
 
 import com.heuristica.ksroutewinthor.LocalizedBindyDataFormat;
+import com.heuristica.ksroutewinthor.apis.BranchApi;
 import com.heuristica.ksroutewinthor.apis.OrderApi;
 import com.heuristica.ksroutewinthor.models.order.Customer;
 import com.heuristica.ksroutewinthor.models.order.Order;
@@ -29,6 +30,7 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:process-order").routeId("process-order")                
                 .log("Processando pedido ${body.erpId}")
+                .enrich("direct:process-branch", AggregationStrategies.bean(OrderEnricher.class, "setBranch"))
                 .enrich("direct:process-customer", AggregationStrategies.bean(OrderEnricher.class, "setCustomer"))
                 .enrich("direct:find-order", AggregationStrategies.bean(OrderEnricher.class, "setId"))                
                 .choice().when(simple("${body.id} == null")).to("direct:create-order")
@@ -58,6 +60,11 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
             local.setId(remoteList.isEmpty() ? local.getId() : remoteList.get(0).getId());
             return local;
         }        
+
+        public Order setBranch(Order order, List<BranchApi> remoteList) {
+            order.setBranchId(remoteList.isEmpty() ? order.getBranchId(): remoteList.get(0).getId());
+            return order;
+        }
         
         public Order setCustomer(Order order, Customer customer) {
             order.setCustomer(customer);
