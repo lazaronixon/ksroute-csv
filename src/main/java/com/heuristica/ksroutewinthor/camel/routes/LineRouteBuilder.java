@@ -21,7 +21,6 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
                 .transform(simple("body.line"))
                 .enrich("direct:find-line", AggregationStrategies.bean(LineEnricher.class))
                 .idempotentConsumer(simple("lines/${body.id}"), getIdempotentCache())
-                .log("sem cacheee")
                 .choice().when(simple("${body.id} == null")).to("direct:create-line")
                 .otherwise().to("direct:update-line")
                 .unmarshal().json(JsonLibrary.Jackson, Line.class);   

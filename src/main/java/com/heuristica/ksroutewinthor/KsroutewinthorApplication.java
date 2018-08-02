@@ -31,7 +31,7 @@ public class KsroutewinthorApplication {
     }
 
     @Bean
-    public ObjectMapper defaultJacksonFormat() {
+    public ObjectMapper jacksonFormat() {
         return new ObjectMapper()
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
