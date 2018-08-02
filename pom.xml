@@ -34,22 +34,22 @@
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-dozer</artifactId>
+            <artifactId>camel-dozer-starter</artifactId>
             <version>${camel.version}</version>
         </dependency>        
         <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-jackson</artifactId>
+            <artifactId>camel-jackson-starter</artifactId>
             <version>${camel.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-bindy</artifactId>
+            <artifactId>camel-bindy-starter</artifactId>
             <version>${camel.version}</version>
         </dependency>                
         <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-http4</artifactId>
+            <artifactId>camel-http4-starter</artifactId>
             <version>${camel.version}</version>
         </dependency>      
         
