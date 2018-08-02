@@ -2,10 +2,12 @@ package com.heuristica.ksroutewinthor.camel.routes;
 
 import com.heuristica.ksroutewinthor.apis.CustomerApi;
 import com.heuristica.ksroutewinthor.models.order.Customer;
+import com.heuristica.ksroutewinthor.models.order.Region;
 import com.heuristica.ksroutewinthor.models.order.Subregion;
 import java.util.List;
 import org.apache.camel.component.jackson.ListJacksonDataFormat;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import static org.apache.camel.processor.idempotent.MemoryIdempotentRepository.memoryIdempotentRepository;
 import org.apache.camel.util.toolbox.AggregationStrategies;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +24,7 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
                 .transform(simple("body.customer"))
                 .enrich("direct:process-subregion", AggregationStrategies.bean(CustomerEnricher.class, "setSubregion"))                
                 .enrich("direct:find-customer", AggregationStrategies.bean(CustomerEnricher.class, "setIdAndLatLng"))
+                .idempotentConsumer(body(), memoryIdempotentRepository(50))
                 .choice().when(simple("${body.id} == null")).to("direct:create-customer")
                 .otherwise().to("direct:update-customer")
                 .unmarshal().json(JsonLibrary.Jackson, Customer.class);
@@ -29,18 +32,18 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
         from("direct:find-customer").routeId("find-customer")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).to("https4://{{ksroute.api.url}}/customers.json")
+                .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/customers.json")
                 .unmarshal(jsonListDataformat);
 
         from("direct:create-customer").routeId("create-customer")
                 .convertBodyTo(CustomerApi.class).marshal().json(JsonLibrary.Jackson)
-                .to("https4://{{ksroute.api.url}}/customers.json");
+                .throttle(5).to("https4://{{ksroute.api.url}}/customers.json");
 
         from("direct:update-customer").routeId("update-customer")                
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT"))
                 .convertBodyTo(CustomerApi.class).marshal().json(JsonLibrary.Jackson)
-                .recipientList(simple("https4://{{ksroute.api.url}}/customers/${header.id}.json"));
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/customers/${header.id}.json"));
     }
 
     public class CustomerEnricher {

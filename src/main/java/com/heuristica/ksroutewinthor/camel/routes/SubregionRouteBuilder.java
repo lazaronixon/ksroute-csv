@@ -7,6 +7,8 @@ import com.heuristica.ksroutewinthor.models.order.Subregion;
 import java.util.List;
 import org.apache.camel.component.jackson.ListJacksonDataFormat;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import org.apache.camel.processor.idempotent.MemoryIdempotentRepository;
+import static org.apache.camel.processor.idempotent.MemoryIdempotentRepository.memoryIdempotentRepository;
 import org.apache.camel.util.toolbox.AggregationStrategies;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +25,8 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
                 .transform(simple("body.subregion"))
                 .enrich("direct:process-region", AggregationStrategies.bean(SubregionEnricher.class, "setRegion"))                
                 .enrich("direct:process-line", AggregationStrategies.bean(SubregionEnricher.class, "setLine"))
-                .enrich("direct:find-subregion", AggregationStrategies.bean(SubregionEnricher.class, "setId"))                
+                .enrich("direct:find-subregion", AggregationStrategies.bean(SubregionEnricher.class, "setId"))
+                .idempotentConsumer(body(), memoryIdempotentRepository(10))
                 .choice().when(simple("${body.id} == null")).to("direct:create-subregion")
                 .otherwise().to("direct:update-subregion")
                 .unmarshal().json(JsonLibrary.Jackson, Subregion.class);
@@ -31,18 +34,18 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
         from("direct:find-subregion").routeId("find-subregion")                          
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).to("https4://{{ksroute.api.url}}/subregions.json")
+                .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/subregions.json")
                 .unmarshal(jsonListDataformat);
 
         from("direct:create-subregion").routeId("create-subregion")
                 .convertBodyTo(SubregionApi.class).marshal().json(JsonLibrary.Jackson)
-                .to("https4://{{ksroute.api.url}}/subregions.json");
+                .throttle(5).to("https4://{{ksroute.api.url}}/subregions.json");
 
         from("direct:update-subregion").routeId("update-subregion")                              
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(SubregionApi.class).marshal().json(JsonLibrary.Jackson)
-                .recipientList(simple("https4://{{ksroute.api.url}}/subregions/${header.id}.json"));          
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/subregions/${header.id}.json"));          
         
     }
     

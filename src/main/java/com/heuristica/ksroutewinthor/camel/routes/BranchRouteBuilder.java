@@ -16,7 +16,7 @@ class BranchRouteBuilder extends ApplicationRouteBuilder {
         from("direct:process-branch").routeId("process-branch")                         
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).to("https4://{{ksroute.api.url}}/branches.json")
+                .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/branches.json")
                 .unmarshal(jsonListDataformat);
             
     }

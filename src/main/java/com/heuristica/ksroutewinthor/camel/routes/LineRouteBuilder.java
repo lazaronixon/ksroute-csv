@@ -5,6 +5,7 @@ import com.heuristica.ksroutewinthor.models.order.Line;
 import java.util.List;
 import org.apache.camel.component.jackson.ListJacksonDataFormat;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import static org.apache.camel.processor.idempotent.MemoryIdempotentRepository.memoryIdempotentRepository;
 import org.apache.camel.util.toolbox.AggregationStrategies;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +20,8 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
         
         from("direct:process-line").routeId("process-line")
                 .transform(simple("body.line"))
-                .enrich("direct:find-line", AggregationStrategies.bean(LineEnricher.class))                
+                .enrich("direct:find-line", AggregationStrategies.bean(LineEnricher.class))
+                .idempotentConsumer(body(), memoryIdempotentRepository(10))
                 .choice().when(simple("${body.id} == null")).to("direct:create-line")
                 .otherwise().to("direct:update-line")
                 .unmarshal().json(JsonLibrary.Jackson, Line.class);   
@@ -27,18 +29,18 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
         from("direct:find-line").routeId("find-line")                             
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).to("https4://{{ksroute.api.url}}/lines.json")
+                .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/lines.json")
                 .unmarshal(jsonListDataformat);
 
         from("direct:create-line").routeId("create-line")
                 .convertBodyTo(LineApi.class).marshal().json(JsonLibrary.Jackson)
-                .to("https4://{{ksroute.api.url}}/lines.json");
+                .throttle(5).to("https4://{{ksroute.api.url}}/lines.json");
 
         from("direct:update-line").routeId("update-line")                              
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(LineApi.class).marshal().json(JsonLibrary.Jackson)
-                .recipientList(simple("https4://{{ksroute.api.url}}/lines/${header.id}.json"));        
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/lines/${header.id}.json"));        
     }
     
     public class LineEnricher {
