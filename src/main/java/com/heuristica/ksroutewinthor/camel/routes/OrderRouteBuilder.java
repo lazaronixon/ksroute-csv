@@ -18,14 +18,13 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
     public void configure() {
         super.configure();
         
+        LocalizedBindyDataFormat bindyDataFormat = new LocalizedBindyDataFormat(Order.class);
         ListJacksonDataFormat jsonListDataformat = new ListJacksonDataFormat(OrderApi.class);        
                 
         from("file://files/orders?move=done").routeId("process-order-file")
                 .log(">>>>>>> Inicio arquivo ${file:path}")
-                .setHeader("X-User-Email", constant("{{ksroute.api.email}}"))
-                .setHeader("X-User-Token", constant("{{ksroute.api.token}}"))
-                .unmarshal(new LocalizedBindyDataFormat(Order.class))
-                .split(body()).to("direct:process-order").end()
+                .unmarshal(bindyDataFormat).split(body())
+                .to("direct:process-order").end()
                 .log(">>>>>>> Fim arquivo ${file:path}");        
 
         from("direct:process-order").routeId("process-order")                

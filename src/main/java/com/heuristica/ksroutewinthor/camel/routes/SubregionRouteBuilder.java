@@ -39,7 +39,7 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
                 .unmarshal().json(JsonLibrary.Jackson, Subregion.class);
 
         from("direct:update-subregion").routeId("update-subregion")
-                .idempotentConsumer(simple("subregions/${body.id}"), getIdempotentCache())
+                .idempotentConsumer(simple("subregions/${body.id}"), getIdempotentExpirableCache())
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(SubregionApi.class).marshal().json(JsonLibrary.Jackson)

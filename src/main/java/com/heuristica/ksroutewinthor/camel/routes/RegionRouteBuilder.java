@@ -35,7 +35,7 @@ class RegionRouteBuilder extends ApplicationRouteBuilder {
                 .unmarshal().json(JsonLibrary.Jackson, Region.class);
 
         from("direct:update-region").routeId("update-region")
-                .idempotentConsumer(simple("regions/${body.id}"), getIdempotentCache())
+                .idempotentConsumer(simple("regions/${body.id}"), getIdempotentExpirableCache())
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(RegionApi.class).marshal().json(JsonLibrary.Jackson)

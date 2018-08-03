@@ -22,7 +22,7 @@ public class ApplicationRouteBuilder extends RouteBuilder {
                 .log(LoggingLevel.WARN, "Detalhe: ${exception.responseBody}");
     }
 
-    protected EhcacheIdempotentRepository getIdempotentCache() {
+    protected EhcacheIdempotentRepository getIdempotentExpirableCache() {
         return new EhcacheIdempotentRepository(cacheManager, "idempotent-expirable-cache");
     }
 

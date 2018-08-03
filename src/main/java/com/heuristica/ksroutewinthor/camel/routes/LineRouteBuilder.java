@@ -35,7 +35,7 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
                 .unmarshal().json(JsonLibrary.Jackson, Line.class);
 
         from("direct:update-line").routeId("update-line")
-                .idempotentConsumer(simple("lines/${body.id}"), getIdempotentCache())
+                .idempotentConsumer(simple("lines/${body.id}"), getIdempotentExpirableCache())
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(LineApi.class).marshal().json(JsonLibrary.Jackson)

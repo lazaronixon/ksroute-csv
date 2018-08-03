@@ -1,7 +1,6 @@
 package com.heuristica.ksroutewinthor.models.order;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.Date;
 import lombok.Data;
 import org.apache.camel.dataformat.bindy.annotation.CsvRecord;
