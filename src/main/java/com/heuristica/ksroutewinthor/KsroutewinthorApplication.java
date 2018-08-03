@@ -17,14 +17,18 @@ import com.heuristica.ksroutewinthor.dozer.mappings.OrderMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.RegionMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.SubregionMapping;
 import java.time.Duration;
+import org.apache.camel.component.http4.HttpClientConfigurer;
+import org.apache.camel.component.http4.HttpComponent;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.ehcache.CacheManager;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.ExpiryPolicyBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @SpringBootApplication
-public class KsroutewinthorApplication {   
+public class KsroutewinthorApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(KsroutewinthorApplication.class, args);
@@ -61,6 +65,12 @@ public class KsroutewinthorApplication {
                                 String.class, Boolean.class, ResourcePoolsBuilder.heap(100))
                                 .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofMinutes(2))))
                 .build(true);
-    }    
+    }
 
+    @Bean
+    public HttpClientConfigurer httpClientConfigurer(@Autowired CamelContext camelContext) {
+        HttpComponent httpComponent = camelContext.getComponent("http4", HttpComponent.class);
+        httpComponent.setClientConnectionManager(new PoolingHttpClientConnectionManager());
+        return httpComponent.getHttpClientConfigurer();
+    }
 }
