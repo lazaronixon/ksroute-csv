@@ -71,6 +71,6 @@ public class KsroutewinthorApplication {
     public HttpClientConfigurer httpClientConfigurer(@Autowired CamelContext camelContext) {
         HttpComponent httpComponent = camelContext.getComponent("http4", HttpComponent.class);
         httpComponent.setClientConnectionManager(new PoolingHttpClientConnectionManager());
-        return httpComponent.getHttpClientConfigurer();
-    }
+        return null;
+    } 
 }
