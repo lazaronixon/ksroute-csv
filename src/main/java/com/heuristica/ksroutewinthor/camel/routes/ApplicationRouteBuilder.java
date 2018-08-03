@@ -23,7 +23,7 @@ public class ApplicationRouteBuilder extends RouteBuilder {
     }
 
     protected EhcacheIdempotentRepository getIdempotentCache() {
-        return new EhcacheIdempotentRepository(cacheManager, "idempotent-cache");
+        return new EhcacheIdempotentRepository(cacheManager, "idempotent-expirable-cache");
     }
 
 }

@@ -22,7 +22,6 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
                 .transform(simple("body.customer"))
                 .enrich("direct:process-subregion", AggregationStrategies.bean(CustomerEnricher.class, "setSubregion"))
                 .enrich("direct:find-customer", AggregationStrategies.bean(CustomerEnricher.class, "setIdAndLatLng"))
-                .idempotentConsumer(simple("customers/${body.id}"), getIdempotentCache())
                 .choice().when(simple("${body.id} == null")).to("direct:create-customer")
                 .otherwise().to("direct:update-customer")
                 .unmarshal().json(JsonLibrary.Jackson, Customer.class);

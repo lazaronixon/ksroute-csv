@@ -24,7 +24,7 @@ import org.ehcache.config.builders.ExpiryPolicyBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 
 @SpringBootApplication
-public class KsroutewinthorApplication {
+public class KsroutewinthorApplication {   
 
     public static void main(String[] args) {
         SpringApplication.run(KsroutewinthorApplication.class, args);
@@ -56,11 +56,11 @@ public class KsroutewinthorApplication {
     @Bean
     public CacheManager cacheManager() {
         return CacheManagerBuilder.newCacheManagerBuilder()
-                .withCache("idempotent-cache",
+                .withCache("idempotent-expirable-cache",
                         CacheConfigurationBuilder.newCacheConfigurationBuilder(
                                 String.class, Boolean.class, ResourcePoolsBuilder.heap(100))
-                                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofSeconds(60))))
+                                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofMinutes(2))))
                 .build(true);
-    }
+    }    
 
 }
