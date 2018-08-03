@@ -63,7 +63,10 @@ public class KsroutewinthorApplication {
                 .withCache("idempotent-expirable-cache",
                         CacheConfigurationBuilder.newCacheConfigurationBuilder(
                                 String.class, Boolean.class, ResourcePoolsBuilder.heap(100))
-                                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofMinutes(2))))
+                                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofMinutes(5))))
+                .withCache("default-cache",
+                        CacheConfigurationBuilder.newCacheConfigurationBuilder(
+                                String.class, String.class, ResourcePoolsBuilder.heap(1000)))                
                 .build(true);
     }
 
@@ -72,5 +75,5 @@ public class KsroutewinthorApplication {
         HttpComponent httpComponent = camelContext.getComponent("http4", HttpComponent.class);
         httpComponent.setClientConnectionManager(new PoolingHttpClientConnectionManager());
         return null;
-    } 
+    }
 }
