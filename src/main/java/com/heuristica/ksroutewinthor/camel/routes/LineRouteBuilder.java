@@ -19,11 +19,9 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
         
         from("direct:process-line").routeId("process-line")
                 .transform(simple("body.line"))
-                .enrich("direct:find-line", AggregationStrategies.bean(LineEnricher.class))
-                .idempotentConsumer(simple("lines/${body.id}"), getIdempotentCache())
+                .enrich("direct:find-line", AggregationStrategies.bean(LineEnricher.class))                
                 .choice().when(simple("${body.id} == null")).to("direct:create-line")
-                .otherwise().to("direct:update-line")
-                .unmarshal().json(JsonLibrary.Jackson, Line.class);   
+                .otherwise().to("direct:update-line");   
         
         from("direct:find-line").routeId("find-line")                             
                 .setHeader("Content-Type", constant("application/json"))
@@ -33,13 +31,16 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:create-line").routeId("create-line")
                 .convertBodyTo(LineApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).to("https4://{{ksroute.api.url}}/lines.json");
+                .throttle(5).to("https4://{{ksroute.api.url}}/lines.json")
+                .unmarshal().json(JsonLibrary.Jackson, Line.class);
 
-        from("direct:update-line").routeId("update-line")                              
+        from("direct:update-line").routeId("update-line")
+                .idempotentConsumer(simple("lines/${body.id}"), getIdempotentCache())
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(LineApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/lines/${header.id}.json"));        
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/lines/${header.id}.json"))
+                .unmarshal().json(JsonLibrary.Jackson, Line.class);        
     }
     
     public class LineEnricher {

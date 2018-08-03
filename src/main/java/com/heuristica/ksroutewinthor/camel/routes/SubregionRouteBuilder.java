@@ -23,11 +23,9 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
                 .transform(simple("body.subregion"))
                 .enrich("direct:process-region", AggregationStrategies.bean(SubregionEnricher.class, "setRegion"))                
                 .enrich("direct:process-line", AggregationStrategies.bean(SubregionEnricher.class, "setLine"))
-                .enrich("direct:find-subregion", AggregationStrategies.bean(SubregionEnricher.class, "setId"))
-                .idempotentConsumer(simple("subregions/${body.id}"), getIdempotentCache())
+                .enrich("direct:find-subregion", AggregationStrategies.bean(SubregionEnricher.class, "setId"))                
                 .choice().when(simple("${body.id} == null")).to("direct:create-subregion")
-                .otherwise().to("direct:update-subregion")
-                .unmarshal().json(JsonLibrary.Jackson, Subregion.class);
+                .otherwise().to("direct:update-subregion");
         
         from("direct:find-subregion").routeId("find-subregion")                          
                 .setHeader("Content-Type", constant("application/json"))
@@ -37,13 +35,16 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:create-subregion").routeId("create-subregion")
                 .convertBodyTo(SubregionApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).to("https4://{{ksroute.api.url}}/subregions.json");
+                .throttle(5).to("https4://{{ksroute.api.url}}/subregions.json")
+                .unmarshal().json(JsonLibrary.Jackson, Subregion.class);
 
-        from("direct:update-subregion").routeId("update-subregion")                              
+        from("direct:update-subregion").routeId("update-subregion")
+                .idempotentConsumer(simple("subregions/${body.id}"), getIdempotentCache())
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(SubregionApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/subregions/${header.id}.json"));          
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/subregions/${header.id}.json"))
+                .unmarshal().json(JsonLibrary.Jackson, Subregion.class);          
         
     }
     

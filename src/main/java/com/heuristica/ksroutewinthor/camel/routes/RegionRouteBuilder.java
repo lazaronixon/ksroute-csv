@@ -19,11 +19,9 @@ class RegionRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:process-region").routeId("process-region")
                 .transform(simple("body.region"))
-                .enrich("direct:find-region", AggregationStrategies.bean(RegionEnricher.class))
-                .idempotentConsumer(simple("regions/${body.id}"), getIdempotentCache())
+                .enrich("direct:find-region", AggregationStrategies.bean(RegionEnricher.class))                
                 .choice().when(simple("${body.id} == null")).to("direct:create-region")
-                .otherwise().to("direct:update-region")
-                .unmarshal().json(JsonLibrary.Jackson, Region.class);
+                .otherwise().to("direct:update-region");
         
         from("direct:find-region").routeId("find-region")                            
                 .setHeader("Content-Type", constant("application/json"))
@@ -33,13 +31,16 @@ class RegionRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:create-region").routeId("create-region")
                 .convertBodyTo(RegionApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).to("https4://{{ksroute.api.url}}/regions.json");
+                .throttle(5).to("https4://{{ksroute.api.url}}/regions.json")
+                .unmarshal().json(JsonLibrary.Jackson, Region.class);
 
-        from("direct:update-region").routeId("update-region")                              
+        from("direct:update-region").routeId("update-region")
+                .idempotentConsumer(simple("regions/${body.id}"), getIdempotentCache())
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(RegionApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/regions/${header.id}.json"));
+                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/regions/${header.id}.json"))
+                .unmarshal().json(JsonLibrary.Jackson, Region.class);
         
     }
     
