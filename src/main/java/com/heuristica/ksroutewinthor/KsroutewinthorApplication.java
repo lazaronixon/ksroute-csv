@@ -11,6 +11,8 @@ import com.heuristica.ksroutewinthor.dozer.mappings.RegionMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.SubregionMapping;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.camel.CamelContext;
 import org.apache.camel.component.http4.HttpClientConfigurer;
 import org.apache.camel.component.http4.HttpComponent;
@@ -66,13 +68,9 @@ public class KsroutewinthorApplication {
                         CacheConfigurationBuilder.newCacheConfigurationBuilder(
                                 String.class, Boolean.class, ResourcePoolsBuilder.heap(100))
                                 .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofMinutes(5))))
-                .withCache("primary-cache",
-                        CacheConfigurationBuilder.newCacheConfigurationBuilder(
-                                Object.class, String.class, ResourcePoolsBuilder.heap(500))
-                                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofMinutes(15))))
                 .build(true);
     }
-
+    
     @Bean
     public HttpClientConfigurer httpClientConfigurer(@Autowired CamelContext camelContext, @Autowired Environment env) {
         HttpComponent httpComponent = camelContext.getComponent("http4", HttpComponent.class);

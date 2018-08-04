@@ -19,30 +19,23 @@ class RegionRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:process-region").routeId("process-region")
                 .transform(simple("body.region"))
-                .enrich("direct:cached-region", AggregationStrategies.bean(RegionEnricher.class))                
+                .enrich("direct:find-region", AggregationStrategies.bean(RegionEnricher.class))                
+                .idempotentConsumer(simple("regions/${body.id}"), getIdempotentExpirableCache())
                 .choice().when(simple("${body.id} == null")).to("direct:create-region")
-                .otherwise().to("direct:update-region");
-        
-        from("direct:cached-region").routeId("cached-region")
-                .setHeader("CamelEhcacheKey", simple("regions/${body.erpId}"))
-                .to("ehcache:primary-cache?action=GET&valueType=java.lang.String")
-                .choice().when((header("CamelEhcacheActionHasResult").isEqualTo(true))).unmarshal(jsonListDataformat)
-                .otherwise().to("direct:find-region").unmarshal(jsonListDataformat);         
+                .otherwise().to("direct:update-region");       
         
         from("direct:find-region").routeId("find-region")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
                 .setBody(constant("")).throttle(5).to("https4:{{ksroute.api.url}}/regions.json")
-                .to("ehcache:primary-cache?action=PUT&valueType=java.lang.String")
-                .to("ehcache:primary-cache?action=GET&valueType=java.lang.String");
+                .unmarshal(jsonListDataformat);
 
         from("direct:create-region").routeId("create-region")
                 .convertBodyTo(RegionApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4:{{ksroute.api.url}}/regions.json")
                 .unmarshal().json(JsonLibrary.Jackson, Region.class);
 
-        from("direct:update-region").routeId("update-region")
-                .idempotentConsumer(simple("regions/${body.id}"), getIdempotentExpirableCache())
+        from("direct:update-region").routeId("update-region")                
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(RegionApi.class).marshal().json(JsonLibrary.Jackson)

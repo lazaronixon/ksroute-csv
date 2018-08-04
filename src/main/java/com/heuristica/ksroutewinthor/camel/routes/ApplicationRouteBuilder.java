@@ -14,8 +14,6 @@ public class ApplicationRouteBuilder extends RouteBuilder {
 
     @Override
     public void configure() {
-        errorHandler(defaultErrorHandler().logExhaustedMessageHistory(false));
-
         onException(HttpOperationFailedException.class)
                 .filter(simple("${exception.statusCode} == 422"))
                 .log(LoggingLevel.WARN, "Erro de validação: ${body}")

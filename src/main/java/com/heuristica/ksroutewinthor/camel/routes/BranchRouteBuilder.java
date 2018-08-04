@@ -11,20 +11,13 @@ class BranchRouteBuilder extends ApplicationRouteBuilder {
     public void configure() {
         super.configure();
         
-        ListJacksonDataFormat jsonListDataformat = new ListJacksonDataFormat(BranchApi.class);
-        
-        from("direct:cached-branch").routeId("cached-branch")
-                .setHeader("CamelEhcacheKey", simple("branches/${body.branchId}"))
-                .to("ehcache:primary-cache?action=GET&valueType=java.lang.String")
-                .choice().when((header("CamelEhcacheActionHasResult").isEqualTo(true))).unmarshal(jsonListDataformat)
-                .otherwise().to("direct:find-branch").unmarshal(jsonListDataformat);        
+        ListJacksonDataFormat jsonListDataformat = new ListJacksonDataFormat(BranchApi.class);       
 
         from("direct:find-branch").routeId("find-branch")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.branchId}"))
                 .setBody(constant("")).throttle(5).to("https4:{{ksroute.api.url}}/branches.json")
-                .to("ehcache:primary-cache?action=PUT&valueType=java.lang.String")
-                .to("ehcache:primary-cache?action=GET&valueType=java.lang.String");                
+                .unmarshal(jsonListDataformat);                
             
     }
     

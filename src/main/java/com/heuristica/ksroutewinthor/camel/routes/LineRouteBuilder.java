@@ -19,30 +19,23 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:process-line").routeId("process-line")
                 .transform(simple("body.line"))
-                .enrich("direct:cached-line", AggregationStrategies.bean(LineEnricher.class))
+                .enrich("direct:find-line", AggregationStrategies.bean(LineEnricher.class))
+                .idempotentConsumer(simple("lines/${body.id}"), getIdempotentExpirableCache())
                 .choice().when(simple("${body.id} == null")).to("direct:create-line")
                 .otherwise().to("direct:update-line");
-
-        from("direct:cached-line").routeId("cached-line")
-                .setHeader("CamelEhcacheKey", simple("lines/${body.erpId}"))
-                .to("ehcache:primary-cache?action=GET&valueType=java.lang.String")
-                .choice().when((header("CamelEhcacheActionHasResult").isEqualTo(true))).unmarshal(jsonListDataformat)
-                .otherwise().to("direct:find-line").unmarshal(jsonListDataformat);
 
         from("direct:find-line").routeId("find-line")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
                 .setBody(constant("")).throttle(5).to("https4:{{ksroute.api.url}}/lines.json")
-                .to("ehcache:primary-cache?action=PUT&valueType=java.lang.String")
-                .to("ehcache:primary-cache?action=GET&valueType=java.lang.String");
+                .unmarshal(jsonListDataformat);
 
         from("direct:create-line").routeId("create-line")
                 .convertBodyTo(LineApi.class).marshal().json(JsonLibrary.Jackson)
                 .throttle(5).to("https4:{{ksroute.api.url}}/lines.json")
                 .unmarshal().json(JsonLibrary.Jackson, Line.class);
 
-        from("direct:update-line").routeId("update-line")
-                .idempotentConsumer(simple("lines/${body.id}"), getIdempotentExpirableCache())
+        from("direct:update-line").routeId("update-line")                
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT"))
                 .convertBodyTo(LineApi.class).marshal().json(JsonLibrary.Jackson)
