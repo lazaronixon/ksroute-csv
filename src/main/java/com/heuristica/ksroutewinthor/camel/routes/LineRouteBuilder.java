@@ -30,7 +30,6 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
                 .otherwise().to("direct:find-line").unmarshal(jsonListDataformat);
 
         from("direct:find-line").routeId("find-line")
-                .log("sem cache")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
                 .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/lines.json")

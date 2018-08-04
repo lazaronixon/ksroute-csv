@@ -34,7 +34,6 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
                 .otherwise().to("direct:find-subregion").unmarshal(jsonListDataformat);         
         
         from("direct:find-subregion").routeId("find-subregion")
-                .log("sem cache")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
                 .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/subregions.json")

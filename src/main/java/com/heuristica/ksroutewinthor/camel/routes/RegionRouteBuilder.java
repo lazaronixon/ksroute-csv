@@ -29,8 +29,7 @@ class RegionRouteBuilder extends ApplicationRouteBuilder {
                 .choice().when((header("CamelEhcacheActionHasResult").isEqualTo(true))).unmarshal(jsonListDataformat)
                 .otherwise().to("direct:find-region").unmarshal(jsonListDataformat);         
         
-        from("direct:find-region").routeId("find-region")     
-                .log("sem cache")
+        from("direct:find-region").routeId("find-region")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
                 .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/regions.json")
