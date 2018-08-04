@@ -29,20 +29,20 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
         
         from("direct:cached-subregion").routeId("cached-subregion")
                 .setHeader("CamelEhcacheKey", simple("subregions/${body.erpId}"))
-                .to("ehcache://primary-cache?action=GET&valueType=java.lang.String")
+                .to("ehcache:primary-cache?action=GET&valueType=java.lang.String")
                 .choice().when((header("CamelEhcacheActionHasResult").isEqualTo(true))).unmarshal(jsonListDataformat)
                 .otherwise().to("direct:find-subregion").unmarshal(jsonListDataformat);         
         
         from("direct:find-subregion").routeId("find-subregion")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/subregions.json")
-                .to("ehcache://primary-cache?action=PUT&valueType=java.lang.String")
-                .to("ehcache://primary-cache?action=GET&valueType=java.lang.String");                
+                .setBody(constant("")).throttle(5).to("https4:{{ksroute.api.url}}/subregions.json")
+                .to("ehcache:primary-cache?action=PUT&valueType=java.lang.String")
+                .to("ehcache:primary-cache?action=GET&valueType=java.lang.String");                
 
         from("direct:create-subregion").routeId("create-subregion")
                 .convertBodyTo(SubregionApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).to("https4://{{ksroute.api.url}}/subregions.json")
+                .throttle(5).to("https4:{{ksroute.api.url}}/subregions.json")
                 .unmarshal().json(JsonLibrary.Jackson, Subregion.class);
 
         from("direct:update-subregion").routeId("update-subregion")
@@ -50,7 +50,7 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(SubregionApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/subregions/${header.id}.json"))
+                .throttle(5).recipientList(simple("https4:{{ksroute.api.url}}/subregions/${header.id}.json"))
                 .unmarshal().json(JsonLibrary.Jackson, Subregion.class);          
         
     }

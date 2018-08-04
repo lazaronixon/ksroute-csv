@@ -25,20 +25,20 @@ class RegionRouteBuilder extends ApplicationRouteBuilder {
         
         from("direct:cached-region").routeId("cached-region")
                 .setHeader("CamelEhcacheKey", simple("regions/${body.erpId}"))
-                .to("ehcache://primary-cache?action=GET&valueType=java.lang.String")
+                .to("ehcache:primary-cache?action=GET&valueType=java.lang.String")
                 .choice().when((header("CamelEhcacheActionHasResult").isEqualTo(true))).unmarshal(jsonListDataformat)
                 .otherwise().to("direct:find-region").unmarshal(jsonListDataformat);         
         
         from("direct:find-region").routeId("find-region")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/regions.json")
-                .to("ehcache://primary-cache?action=PUT&valueType=java.lang.String")
-                .to("ehcache://primary-cache?action=GET&valueType=java.lang.String");
+                .setBody(constant("")).throttle(5).to("https4:{{ksroute.api.url}}/regions.json")
+                .to("ehcache:primary-cache?action=PUT&valueType=java.lang.String")
+                .to("ehcache:primary-cache?action=GET&valueType=java.lang.String");
 
         from("direct:create-region").routeId("create-region")
                 .convertBodyTo(RegionApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).to("https4://{{ksroute.api.url}}/regions.json")
+                .throttle(5).to("https4:{{ksroute.api.url}}/regions.json")
                 .unmarshal().json(JsonLibrary.Jackson, Region.class);
 
         from("direct:update-region").routeId("update-region")
@@ -46,7 +46,7 @@ class RegionRouteBuilder extends ApplicationRouteBuilder {
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT")) 
                 .convertBodyTo(RegionApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).recipientList(simple("https4://{{ksroute.api.url}}/regions/${header.id}.json"))
+                .throttle(5).recipientList(simple("https4:{{ksroute.api.url}}/regions/${header.id}.json"))
                 .unmarshal().json(JsonLibrary.Jackson, Region.class);
         
     }
