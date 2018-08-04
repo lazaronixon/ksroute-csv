@@ -11,8 +11,6 @@ import com.heuristica.ksroutewinthor.dozer.mappings.RegionMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.SubregionMapping;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.camel.CamelContext;
 import org.apache.camel.component.http4.HttpClientConfigurer;
 import org.apache.camel.component.http4.HttpComponent;
@@ -76,6 +74,7 @@ public class KsroutewinthorApplication {
         HttpComponent httpComponent = camelContext.getComponent("http4", HttpComponent.class);
         httpComponent.setClientConnectionManager(new PoolingHttpClientConnectionManager());
         HttpClientConfigurer httpClientConfigurer = httpClientBuilder -> {
+            httpClientBuilder.disableCookieManagement();
             httpClientBuilder.setDefaultHeaders(Arrays.asList(
                     new BasicHeader("X-User-Email", env.getProperty("ksroute.api.email")),
                     new BasicHeader("X-User-Token", env.getProperty("ksroute.api.token"))));

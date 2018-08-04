@@ -16,8 +16,6 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
     public void configure() {
         super.configure();
 
-        ListJacksonDataFormat jsonListDataformat = new ListJacksonDataFormat(CustomerApi.class);
-
         from("direct:process-customer").routeId("process-customer")
                 .transform(simple("body.customer"))
                 .enrich("direct:process-subregion", AggregationStrategies.bean(CustomerEnricher.class, "setSubregion"))
@@ -29,8 +27,8 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
         from("direct:find-customer").routeId("find-customer")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).throttle(5).to("https4:{{ksroute.api.url}}/customers.json")
-                .unmarshal(jsonListDataformat);
+                .setBody(constant(null)).throttle(5).to("https4:{{ksroute.api.url}}/customers.json")
+                .unmarshal(new ListJacksonDataFormat(CustomerApi.class));
 
         from("direct:create-customer").routeId("create-customer")
                 .convertBodyTo(CustomerApi.class).marshal().json(JsonLibrary.Jackson)

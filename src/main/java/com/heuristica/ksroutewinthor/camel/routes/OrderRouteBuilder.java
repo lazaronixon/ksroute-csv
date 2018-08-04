@@ -17,13 +17,11 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
     @Override
     public void configure() {
         super.configure();
-        
-        LocalizedBindyDataFormat bindyDataFormat = new LocalizedBindyDataFormat(Order.class);
-        ListJacksonDataFormat jsonListDataformat = new ListJacksonDataFormat(OrderApi.class);        
                 
         from("file:files/orders?move=done").routeId("process-order-file")
                 .log(">>>>>>> Inicio arquivo ${file:path}")
-                .unmarshal(bindyDataFormat).split(body())
+                .unmarshal(new LocalizedBindyDataFormat(Order.class))
+                .split(body())
                 .to("direct:process-order").end()
                 .log(">>>>>>> Fim arquivo ${file:path}");        
 
@@ -39,8 +37,8 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
         from("direct:find-order").routeId("find-order")                          
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).throttle(5).to("https4:{{ksroute.api.url}}/orders.json")
-                .unmarshal(jsonListDataformat);
+                .setBody(constant(null)).throttle(5).to("https4:{{ksroute.api.url}}/orders.json")
+                .unmarshal(new ListJacksonDataFormat(OrderApi.class));
 
         from("direct:create-order").routeId("create-order")
                 .convertBodyTo(OrderApi.class).marshal().json(JsonLibrary.Jackson)

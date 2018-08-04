@@ -15,32 +15,29 @@ class LineRouteBuilder extends ApplicationRouteBuilder {
     public void configure() {
         super.configure();
 
-        ListJacksonDataFormat jsonListDataformat = new ListJacksonDataFormat(LineApi.class);
-
         from("direct:process-line").routeId("process-line")
                 .transform(simple("body.line"))
                 .enrich("direct:find-line", AggregationStrategies.bean(LineEnricher.class))
                 .idempotentConsumer(simple("lines/${body.id}"), getIdempotentExpirableCache())
                 .choice().when(simple("${body.id} == null")).to("direct:create-line")
-                .otherwise().to("direct:update-line");
+                .otherwise().to("direct:update-line")
+                .unmarshal().json(JsonLibrary.Jackson, Line.class);
 
         from("direct:find-line").routeId("find-line")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
-                .setBody(constant("")).throttle(5).to("https4:{{ksroute.api.url}}/lines.json")
-                .unmarshal(jsonListDataformat);
+                .setBody(constant(null)).throttle(5).to("https4:{{ksroute.api.url}}/lines.json")
+                .unmarshal(new ListJacksonDataFormat(LineApi.class));
 
         from("direct:create-line").routeId("create-line")
                 .convertBodyTo(LineApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).to("https4:{{ksroute.api.url}}/lines.json")
-                .unmarshal().json(JsonLibrary.Jackson, Line.class);
+                .throttle(5).to("https4:{{ksroute.api.url}}/lines.json");
 
         from("direct:update-line").routeId("update-line")                
                 .setHeader("id", simple("body.id"))
                 .setHeader("CamelHttpMethod", constant("PUT"))
                 .convertBodyTo(LineApi.class).marshal().json(JsonLibrary.Jackson)
-                .throttle(5).recipientList(simple("https4:{{ksroute.api.url}}/lines/${header.id}.json"))
-                .unmarshal().json(JsonLibrary.Jackson, Line.class);
+                .throttle(5).recipientList(simple("https4:{{ksroute.api.url}}/lines/${header.id}.json"));
     }
 
     public class LineEnricher {

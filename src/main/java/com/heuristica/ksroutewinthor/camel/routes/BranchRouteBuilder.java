@@ -9,16 +9,13 @@ class BranchRouteBuilder extends ApplicationRouteBuilder {
 
     @Override
     public void configure() {
-        super.configure();
-        
-        ListJacksonDataFormat jsonListDataformat = new ListJacksonDataFormat(BranchApi.class);       
+        super.configure();    
 
         from("direct:find-branch").routeId("find-branch")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.branchId}"))
-                .setBody(constant("")).throttle(5).to("https4:{{ksroute.api.url}}/branches.json")
-                .unmarshal(jsonListDataformat);                
-            
+                .setBody(constant(null)).throttle(5).to("https4:{{ksroute.api.url}}/branches.json")
+                .unmarshal(new ListJacksonDataFormat(BranchApi.class));            
     }
     
 }
