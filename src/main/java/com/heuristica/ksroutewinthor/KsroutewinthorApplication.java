@@ -12,7 +12,6 @@ import com.heuristica.ksroutewinthor.dozer.mappings.SubregionMapping;
 import java.time.Duration;
 import java.util.Arrays;
 import org.apache.camel.CamelContext;
-import org.apache.camel.component.http4.HttpClientConfigurer;
 import org.apache.camel.component.http4.HttpComponent;
 import org.apache.camel.converter.dozer.DozerBeanMapperConfiguration;
 import org.apache.camel.converter.dozer.DozerTypeConverterLoader;
@@ -68,18 +67,18 @@ public class KsroutewinthorApplication {
                                 .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofMinutes(5))))
                 .build(true);
     }
-    
+
     @Bean
-    public HttpClientConfigurer httpClientConfigurer(@Autowired CamelContext camelContext, @Autowired Environment env) {
+    public boolean httpClientConfigurer(@Autowired CamelContext camelContext, @Autowired Environment env) {
         HttpComponent httpComponent = camelContext.getComponent("http4", HttpComponent.class);
         httpComponent.setClientConnectionManager(new PoolingHttpClientConnectionManager());
-        HttpClientConfigurer httpClientConfigurer = httpClientBuilder -> {
-            httpClientBuilder.disableCookieManagement();
-            httpClientBuilder.setDefaultHeaders(Arrays.asList(
-                    new BasicHeader("X-User-Email", env.getProperty("ksroute.api.email")),
-                    new BasicHeader("X-User-Token", env.getProperty("ksroute.api.token"))));
-        };
-        httpComponent.setHttpClientConfigurer(httpClientConfigurer);
-        return null;
+        httpComponent.setHttpClientConfigurer(httpClientBuilder -> {
+            httpClientBuilder
+                    .disableCookieManagement()
+                    .setDefaultHeaders(Arrays.asList(
+                            new BasicHeader("X-User-Email", env.getProperty("ksroute.api.email")),
+                            new BasicHeader("X-User-Token", env.getProperty("ksroute.api.token"))));
+        });
+        return true;
     }
 }
