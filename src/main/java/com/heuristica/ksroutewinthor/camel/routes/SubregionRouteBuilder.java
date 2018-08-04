@@ -23,15 +23,23 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
                 .transform(simple("body.subregion"))
                 .enrich("direct:process-region", AggregationStrategies.bean(SubregionEnricher.class, "setRegion"))                
                 .enrich("direct:process-line", AggregationStrategies.bean(SubregionEnricher.class, "setLine"))
-                .enrich("direct:find-subregion", AggregationStrategies.bean(SubregionEnricher.class, "setId"))                
+                .enrich("direct:cached-subregion", AggregationStrategies.bean(SubregionEnricher.class, "setId"))                
                 .choice().when(simple("${body.id} == null")).to("direct:create-subregion")
                 .otherwise().to("direct:update-subregion");
         
-        from("direct:find-subregion").routeId("find-subregion")                          
+        from("direct:cached-subregion").routeId("cached-subregion")
+                .setHeader("CamelEhcacheKey", simple("subregions/${body.erpId}"))
+                .to("ehcache://primary-cache?action=GET&valueType=java.lang.String")
+                .choice().when((header("CamelEhcacheActionHasResult").isEqualTo(true))).unmarshal(jsonListDataformat)
+                .otherwise().to("direct:find-subregion").unmarshal(jsonListDataformat);         
+        
+        from("direct:find-subregion").routeId("find-subregion")
+                .log("sem cache")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
                 .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/subregions.json")
-                .unmarshal(jsonListDataformat);
+                .to("ehcache://primary-cache?action=PUT&valueType=java.lang.String")
+                .to("ehcache://primary-cache?action=GET&valueType=java.lang.String");                
 
         from("direct:create-subregion").routeId("create-subregion")
                 .convertBodyTo(SubregionApi.class).marshal().json(JsonLibrary.Jackson)

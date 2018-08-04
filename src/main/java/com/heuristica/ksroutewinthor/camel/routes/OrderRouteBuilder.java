@@ -29,7 +29,7 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:process-order").routeId("process-order")                
                 .log("Processando pedido ${body.erpId}")
-                .enrich("direct:find-branch", AggregationStrategies.bean(OrderEnricher.class, "setBranch"))
+                .enrich("direct:cached-branch", AggregationStrategies.bean(OrderEnricher.class, "setBranch"))
                 .enrich("direct:process-customer", AggregationStrategies.bean(OrderEnricher.class, "setCustomer"))
                 .enrich("direct:find-order", AggregationStrategies.bean(OrderEnricher.class, "setId"))
                 .choice().when(simple("${body.id} == null")).to("direct:create-order")

@@ -66,9 +66,10 @@ public class KsroutewinthorApplication {
                         CacheConfigurationBuilder.newCacheConfigurationBuilder(
                                 String.class, Boolean.class, ResourcePoolsBuilder.heap(100))
                                 .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofMinutes(5))))
-                .withCache("default-cache",
+                .withCache("primary-cache",
                         CacheConfigurationBuilder.newCacheConfigurationBuilder(
-                                String.class, String.class, ResourcePoolsBuilder.heap(1000)))
+                                Object.class, String.class, ResourcePoolsBuilder.heap(500))
+                                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofMinutes(15))))
                 .build(true);
     }
 

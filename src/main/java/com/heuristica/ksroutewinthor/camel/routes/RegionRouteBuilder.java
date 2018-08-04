@@ -19,15 +19,23 @@ class RegionRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:process-region").routeId("process-region")
                 .transform(simple("body.region"))
-                .enrich("direct:find-region", AggregationStrategies.bean(RegionEnricher.class))                
+                .enrich("direct:cached-region", AggregationStrategies.bean(RegionEnricher.class))                
                 .choice().when(simple("${body.id} == null")).to("direct:create-region")
                 .otherwise().to("direct:update-region");
         
-        from("direct:find-region").routeId("find-region")                            
+        from("direct:cached-region").routeId("cached-region")
+                .setHeader("CamelEhcacheKey", simple("regions/${body.erpId}"))
+                .to("ehcache://primary-cache?action=GET&valueType=java.lang.String")
+                .choice().when((header("CamelEhcacheActionHasResult").isEqualTo(true))).unmarshal(jsonListDataformat)
+                .otherwise().to("direct:find-region").unmarshal(jsonListDataformat);         
+        
+        from("direct:find-region").routeId("find-region")     
+                .log("sem cache")
                 .setHeader("Content-Type", constant("application/json"))
                 .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.erpId}"))
                 .setBody(constant("")).throttle(5).to("https4://{{ksroute.api.url}}/regions.json")
-                .unmarshal(jsonListDataformat);
+                .to("ehcache://primary-cache?action=PUT&valueType=java.lang.String")
+                .to("ehcache://primary-cache?action=GET&valueType=java.lang.String");
 
         from("direct:create-region").routeId("create-region")
                 .convertBodyTo(RegionApi.class).marshal().json(JsonLibrary.Jackson)
