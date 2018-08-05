@@ -19,10 +19,10 @@ class SubregionRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:process-subregion").routeId("process-subregion")
                 .transform(simple("body.subregion"))
-                .enrich("direct:process-region", AggregationStrategies.bean(SubregionEnricher.class, "setRegion"))                
-                .enrich("direct:process-line", AggregationStrategies.bean(SubregionEnricher.class, "setLine"))
                 .enrich("direct:find-subregion", AggregationStrategies.bean(SubregionEnricher.class, "setId"))
-                .idempotentConsumer(simple("subregions/${body.id}"), getIdempotentExpirableCache())                
+                .idempotentConsumer(simple("subregions/${body.id}"), getIdempotentExpirableCache())
+                .enrich("direct:process-region", AggregationStrategies.bean(SubregionEnricher.class, "setRegion"))                
+                .enrich("direct:process-line", AggregationStrategies.bean(SubregionEnricher.class, "setLine"))                
                 .choice().when(simple("${body.id} == null")).to("direct:create-subregion")
                 .otherwise().to("direct:update-subregion")
                 .unmarshal().json(JsonLibrary.Jackson, Subregion.class);
