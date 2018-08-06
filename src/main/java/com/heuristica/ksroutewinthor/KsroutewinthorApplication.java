@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.heuristica.ksroutewinthor.dozer.mappings.CustomerMapping;
+import com.heuristica.ksroutewinthor.dozer.mappings.DriverMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.LineMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.OrderMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.RegionMapping;
 import com.heuristica.ksroutewinthor.dozer.mappings.SubregionMapping;
+import com.heuristica.ksroutewinthor.dozer.mappings.VehicleMapping;
 import java.time.Duration;
 import java.util.Arrays;
 import org.apache.camel.CamelContext;
@@ -48,7 +50,8 @@ public class KsroutewinthorApplication {
         DozerBeanMapperConfiguration dozerConfig = new DozerBeanMapperConfiguration();
         dozerConfig.setBeanMappingBuilders(Arrays.asList(
                 new CustomerMapping(), new LineMapping(), new OrderMapping(),
-                new RegionMapping(), new SubregionMapping()
+                new RegionMapping(), new SubregionMapping(), new VehicleMapping(),
+                new DriverMapping()
         ));
         return dozerConfig;
     }

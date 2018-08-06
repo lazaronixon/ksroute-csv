@@ -34,7 +34,7 @@ public class Order {
     private Date issuedAt;  
     
     @DataField(pos = 7, required = true)
-    private Long branchId;    
+    private Long branchErpId;    
        
     @Link
     private Customer customer;

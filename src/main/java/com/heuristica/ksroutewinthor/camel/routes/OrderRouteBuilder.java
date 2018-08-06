@@ -59,7 +59,7 @@ class OrderRouteBuilder extends ApplicationRouteBuilder {
         }        
 
         public Order setBranch(Order order, List<BranchApi> remoteList) {
-            order.setBranchId(remoteList.isEmpty() ? order.getBranchId(): remoteList.get(0).getId());
+            order.setBranchErpId(remoteList.isEmpty() ? order.getBranchErpId(): remoteList.get(0).getId());
             return order;
         }
         

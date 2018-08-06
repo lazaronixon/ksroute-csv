@@ -13,7 +13,7 @@ public class ApplicationRouteBuilder extends RouteBuilder {
     protected CacheManager cacheManager;
 
     @Override
-    public void configure() {
+    public void configure() {        
         onException(HttpOperationFailedException.class)
                 .filter(simple("${exception.statusCode} == 422"))
                 .log(LoggingLevel.WARN, "Erro de validação: ${body}")

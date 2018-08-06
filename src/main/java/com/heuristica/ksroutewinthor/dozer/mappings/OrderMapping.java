@@ -8,7 +8,9 @@ public class OrderMapping extends BeanMappingBuilder {
 
     @Override
     protected void configure() {
-        mapping(Order.class, OrderApi.class).fields("customer.id", "customerId");
+        mapping(Order.class, OrderApi.class)
+                .fields("branchErpId", "branchId")
+                .fields("customer.id", "customerId");
     }
 
 }

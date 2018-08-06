@@ -13,7 +13,7 @@ class BranchRouteBuilder extends ApplicationRouteBuilder {
 
         from("direct:find-branch").routeId("find-branch")
                 .setHeader("Content-Type", constant("application/json"))
-                .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.branchId}"))
+                .setHeader("CamelHttpQuery", simple("q[erp_id_eq]=${body.branchErpId}"))
                 .setBody(constant(null)).throttle(5).to("https4:{{ksroute.api.url}}/branches.json")
                 .unmarshal(new ListJacksonDataFormat(BranchApi.class));            
     }
