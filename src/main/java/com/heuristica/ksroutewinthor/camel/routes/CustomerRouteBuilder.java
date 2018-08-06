@@ -47,7 +47,7 @@ class CustomerRouteBuilder extends ApplicationRouteBuilder {
             if (remoteList.isEmpty() == false) {
                 local.setId(remoteList.get(0).getId());
                 local.setLatitude(remoteList.get(0).getLatitude());
-                local.setLatitude(remoteList.get(0).getLongitude());
+                local.setLongitude(remoteList.get(0).getLongitude());
             }
             return local;
         }
